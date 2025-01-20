@@ -24,12 +24,9 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 const bool waitForCOMPort = false;
 const int led_pin = 16;
-float shuntvoltage = 0;
 float busvoltage = 0;
 float current_mA = 0;
-float power_mW = 0;
 
-int counter_LED = 0;  //cycles through 0 -> 1 -> 2 ->0
 bool LED_On = true;
 int position_Welcome_Screen = 1;  //sequential cycles 0 -> 1 -> 2 -> 1 -> 0
 bool welcome_screen_going_forward = true;
@@ -68,7 +65,7 @@ void setup() {
   ina3221.reset();
   ina3221.setShuntRes(20.27, 20.7, 20.53);      // Shunt LSB=40uV. 13 bit. 8192 steps. half of which are positive and half are negative (indicated in the -163.8mV to 163.8mV range). max measurable current = 163.8mV/20mOhm = 8.19A. min measurable current = 40uV/20mOhm = 2mA.
   ina3221.setFilterRes(0, 0, 0);
-  ina3221.setAveragingMode(INA3221_REG_CONF_AVG_16);    // set averaging
+  ina3221.setAveragingMode(INA3221_REG_CONF_AVG_4);    // set averaging
   unsigned int manu_id = ina3221.getReg(INA3221_REG_MANUF_ID);
   unsigned int die_id = ina3221.getDieID();
 
@@ -227,7 +224,6 @@ void loop() {
       // display.dim(true);
       //dim color changes
       ChangeLedColor();
-      counter_LED = 0;
       LED_On = true;
       // display.invertDisplay(false);
       welcomeScreen();
@@ -236,7 +232,6 @@ void loop() {
     if(elapsed_mil > 1000) {
       //dim color changes
       ChangeLedColor();
-      counter_LED = 0;
       LED_On = true;
       elapsed_mil = 0;
     }
@@ -281,44 +276,26 @@ void loop() {
       elapsed_mil = 0;
       display_star = false;
       // display.dim(false);
-      counter_LED = 0;
       LED_On = true;
     }
 
     for (int channel_i = 0; channel_i < 3; channel_i++)
       printVI(channel_i);
 
-    
-    // if(counter_LED == 0) {
-    //   if(LED_On)
-    //   {
-    //     int green = min(max(round((1000-current_mA)/1000*current_mA/2),0),255);
-    //     int red = min(max(round((current_mA-100)/1000*current_mA/2),0),255);
-    //     writeEasyNeoPixel(0, green, red, 0);    //Green Red Blue
-    //   }
-    //   else
-    //     writeEasyNeoPixel(0, 0, 0, 0);
-    //   counter_LED++;
-    //   if(counter_LED > 2) {
-    //     counter_LED = 0;
-    //     LED_On = !LED_On;
-    //   }
-    // }
-
     if(elapsed_mil > 1000) {
       if(display_star) {
         writeEasyNeoPixel(0, 0, 0, 0);
-        // display.setTextColor(SSD1306_BLACK);
+        display.setTextColor(SSD1306_BLACK);
       }
       else {
         //blink LED with Amp equivalent green to red color
         int green = min(max(round((1000-current_mA)/1000*current_mA/2),0),255);
         int red = min(max(round((current_mA-100)/1000*current_mA/2),0),255);
         writeEasyNeoPixel(0, green, red, 0);    //Green Red Blue
-        // display.setTextColor(SSD1306_WHITE);
+        display.setTextColor(SSD1306_WHITE);
       }
-      // display.setCursor(10, row_height);
-      // display.print("*");
+      display.setCursor(10, row_height);
+      display.print("*");
       display_star = !display_star;
       elapsed_mil = 0;
     }
