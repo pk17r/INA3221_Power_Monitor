@@ -5,7 +5,7 @@
 #include <Adafruit_SSD1306.h>
 #include <elapsedMillis.h>
 #include <EasyNeoPixels.h>
-#include <INA3221.h>
+#include "INA3221.h"
 
 // Set I2C address to 0x40
 INA3221 ina3221(INA3221_ADDR40_GND);
@@ -66,8 +66,9 @@ void setup() {
   //initialize current voltage power sensor
   ina3221.begin(&Wire);
   ina3221.reset();
-  ina3221.setShuntRes(20, 20, 20);
+  ina3221.setShuntRes(20.27, 20.7, 20.53);      // Shunt LSB=40uV. 13 bit. 8192 steps. half of which are positive and half are negative (indicated in the -163.8mV to 163.8mV range). max measurable current = 163.8mV/20mOhm = 8.19A. min measurable current = 40uV/20mOhm = 2mA.
   ina3221.setFilterRes(0, 0, 0);
+  ina3221.setAveragingMode(INA3221_REG_CONF_AVG_16);    // set averaging
   unsigned int manu_id = ina3221.getReg(INA3221_REG_MANUF_ID);
   unsigned int die_id = ina3221.getDieID();
 
